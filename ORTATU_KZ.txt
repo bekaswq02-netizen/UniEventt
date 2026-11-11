@@ -1,0 +1,23 @@
+UniEvent 2.0 — 2FA және Face ID жоқ нұсқа.
+Бұрынғы HTML дизайны, оқиғалар, турнирлер, хабарламалар, құжаттар және аналитика сақталған.
+
+МАҢЫЗДЫ: бұрынғы жобаңыздың толық резервтік көшірмесін жасаңыз.
+Ескі жобаның backend/unievent.db және backend/uploads/ ішін ӨШІРМЕҢІЗ.
+
+1) Бұрынғы серверді Ctrl+C арқылы тоқтатыңыз.
+2) Осы архивтен 3 файлды бұрынғы жобаға ауыстырыңыз:
+   backend/main.py
+   frontend/index.html
+   frontend/api-integration.js
+   Қажет болса backend/requirements.txt файлын да ауыстырыңыз.
+3) Бұрынғы backend папкасында PowerShell ашыңыз.
+4) Бұрынғы UNIEVENT_SECRET кілтін орнатыңыз; ол сақталмаған болса:
+   $env:UNIEVENT_SECRET = (.\.venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(48))")
+5) Серверді іске қосыңыз:
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   .\.venv\Scripts\python.exe -m uvicorn main:app --reload
+6) Браузер: http://localhost:8000, Ctrl+Shift+R.
+
+Сақталған admin / organizer парольдері базаңызда өзгеріссіз қалады.
+Бұрынғы passkeys және MFA бағандары SQLite ішінде қалуы мүмкін, бірақ бұл нұсқа оларды қолданбайды.
+Қауіпсіздік: сайт интернетке жарияланса, 2FA-сыз әкімші аккаунттары үшін тәуекел жоғары; күшті пароль мен HTTPS қажет.
