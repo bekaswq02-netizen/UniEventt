@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Университет Іс-шараларын Басқару Жүйесі (EMS)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <div id="auth-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-5 sm:p-8 animate-fade-in border border-slate-100 my-auto">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-bold mx-auto mb-3 shadow-lg">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">UniEvent жүйесіне кіру</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 mt-1">Университеттің іс-шараларын басқару және қатысу жүйесі</p>
+            </div>
+
+            <form id="auth-form" onsubmit="handleLoginSubmit(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Жүйедегі рөліңіз *</label>
+                    <select id="auth-role" onchange="toggleAuthFields(this.value)" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium text-slate-800 cursor-pointer">
+                        <option value="student">Студент</option>
+                        <option value="organizer">Ұйымдастырушы</option>
+                        <option value="admin">Әкімші (Admin)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Аты-жөніңіз *</label>
+                    <input type="text" id="auth-name" required placeholder="Мысалы: Асан Әлиұлы" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium text-slate-800">
+                </div>
+
+                <div id="auth-student-id-container">
+                    <label class="block font-semibold text-slate-700 mb-1">Студенттік ID (Нөмірі) *</label>
+                    <input type="text" id="auth-student-id" placeholder="Мысалы: ST2026541" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium text-slate-800">
+                </div>
+
+                <div id="auth-group-container">
+                    <label class="block font-semibold text-slate-700 mb-1">Оқитын тобы / Мамандығы *</label>
+                    <select id="auth-group" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium text-slate-800">
+                        <option value="Ақпараттық технологиялар (IT)">Ақпараттық технологиялар (IT)</option>
+                        <option value="Механика-математика (Мех)">Механика-математика (Мех)</option>
+                        <option value="Логистика және көлік (Логистика)">Логистика және көлік (Логистика)</option>
+                        <option value="Математика және педагогика (Матпед)">Математика және педагогика (Матпед)</option>
+                        <option value="Экономика және бизнес">Экономика және бизнес</option>
+                        <option value="Өзге факультет / топ">Өзге факультет / топ</option>
+                    </select>
+                </div>
+
+                <div id="auth-pass-container" class="hidden">
+                    <label class="block font-semibold text-slate-700 mb-1">Құпия сөз (Пароль) *</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium text-slate-800">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i> Жүйеге кіру
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-4 text-center border-t border-slate-100 pt-3">
+                <p class="text-[10px] sm:text-[11px] text-slate-400">UniEvent Университет Жүйесі © 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchView('events-view')">
+                    <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                        <i class="fa-solid fa-graduation-cap text-xl sm:text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg sm:text-xl tracking-wide block leading-none">UniEvent</span>
+                        <span class="text-[10px] sm:text-xs text-indigo-300">Басқару жүйесі</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation items -->
+                <nav class="hidden lg:flex space-x-1">
+                    <button onclick="switchView('events-view')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-white" id="nav-events">
+                        <i class="fa-solid fa-calendar-days mr-1.5"></i> Шаралар
+                    </button>
+                    <button id="nav-my-events-btn" onclick="switchView('my-events-view')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-ticket mr-1.5"></i> <span id="my-events-nav-label">Менің шараларым</span>
+                    </button>
+                    <button onclick="switchView('calendar-view')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-calendar-week mr-1.5"></i> Күнтізбе
+                    </button>
+                    <button onclick="switchView('tournaments-view')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-sitemap mr-1.5"></i> Турнирлер
+                    </button>
+                    <button onclick="switchView('venues-view')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-building-columns mr-1.5"></i> Орындар
+                    </button>
+                    <button id="nav-resources-btn" onclick="switchView('resources-view')" class="nav-btn hidden px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-folder-open mr-1.5"></i> Құжаттар
+                    </button>
+                    <button id="nav-create-btn" onclick="switchView('create-event-view')" class="nav-btn hidden px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-plus-circle mr-1.5"></i> Шара құру
+                    </button>
+                    <button id="nav-analytics-btn" onclick="switchView('analytics-view')" class="nav-btn hidden px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Аналитика
+                    </button>
+                    <button id="nav-team-btn" onclick="switchView('team-view')" class="nav-btn hidden px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 transition text-indigo-200">
+                        <i class="fa-solid fa-users mr-1.5"></i> Топ
+                    </button>
+                </nav>
+
+                <!-- User profile, Notification & Mobile Menu Toggle -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="p-2 text-indigo-200 hover:text-white rounded-full hover:bg-indigo-800 transition relative">
+                            <i class="fa-solid fa-bell text-base sm:text-lg"></i>
+                            <span id="notif-badge" class="absolute top-1 right-1 bg-red-500 text-white text-[10px] rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 flex items-center justify-center font-bold">3</span>
+                        </button>
+
+                        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl py-2 z-50 text-slate-800 border border-slate-100">
+                            <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
+                                <h4 class="font-bold text-sm">Хабарламалар</h4>
+                                <button onclick="clearNotifications()" class="text-xs text-indigo-600 hover:underline">Тазалау</button>
+                            </div>
+                            <div id="notif-list" class="max-h-60 overflow-y-auto custom-scrollbar divide-y divide-slate-100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Role Badge / Logout button -->
+                    <div class="flex items-center space-x-1.5 sm:space-x-2 bg-indigo-950 px-2.5 sm:px-3 py-1.5 rounded-full border border-indigo-700">
+                        <div id="user-avatar" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">
+                            С
+                        </div>
+                        <span id="user-name-display" class="text-xs font-semibold hidden md:inline">Студент</span>
+                        <button onclick="logoutUser()" title="Шығу" class="text-indigo-300 hover:text-white ml-0.5 sm:ml-1 pl-1 border-l border-indigo-700 text-xs">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-indigo-200 hover:text-white rounded-lg hover:bg-indigo-800 transition">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Drawer -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-indigo-950 border-t border-indigo-800 px-4 py-3 space-y-1.5 text-xs">
+            <button onclick="switchView('events-view'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-white font-medium">
+                <i class="fa-solid fa-calendar-days mr-2 w-5 text-indigo-400"></i> Шаралар
+            </button>
+            <button onclick="switchView('my-events-view'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-ticket mr-2 w-5 text-indigo-400"></i> <span id="mobile-my-events-label">Менің шараларым</span>
+            </button>
+            <button onclick="switchView('calendar-view'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-calendar-week mr-2 w-5 text-indigo-400"></i> Күнтізбе
+            </button>
+            <button onclick="switchView('tournaments-view'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-sitemap mr-2 w-5 text-indigo-400"></i> Турнир торлары
+            </button>
+            <button onclick="switchView('venues-view'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-building-columns mr-2 w-5 text-indigo-400"></i> Өтетін орындар
+            </button>
+            <button id="mob-nav-resources" onclick="switchView('resources-view'); toggleMobileMenu();" class="hidden w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-folder-open mr-2 w-5 text-indigo-400"></i> Құжаттар
+            </button>
+            <button id="mob-nav-create" onclick="switchView('create-event-view'); toggleMobileMenu();" class="hidden w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-plus-circle mr-2 w-5 text-indigo-400"></i> Шара құру
+            </button>
+            <button id="mob-nav-analytics" onclick="switchView('analytics-view'); toggleMobileMenu();" class="hidden w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-chart-pie mr-2 w-5 text-indigo-400"></i> Аналитика
+            </button>
+            <button id="mob-nav-team" onclick="switchView('team-view'); toggleMobileMenu();" class="hidden w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-900 transition flex items-center text-indigo-200 font-medium">
+                <i class="fa-solid fa-users mr-2 w-5 text-indigo-400"></i> Жоба тобы
+            </button>
+        </div>
+    </header>
+
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none max-w-xs sm:max-w-sm"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+
+        <section id="events-view" class="view-section">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 sm:p-8 text-white mb-6 sm:mb-8 shadow-md">
+                <div class="max-w-2xl">
+                    <span class="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] sm:text-xs font-semibold tracking-wide uppercase mb-2 sm:mb-3">Университет Өмірі</span>
+                    <h1 class="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2">Университеттің барлық іс-шаралары бір жерде</h1>
+                    <p class="text-indigo-100 text-xs sm:text-base">Дәрістер, спорттық жарыстар мен хакатондарға жазылып, өз уақытыңызды тиімді жоспарлаңыз.</p>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-3 sm:gap-4 justify-between items-center">
+                <div class="relative w-full md:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" oninput="filterEvents()" placeholder="Іс-шара атауы немесе орны..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="flex w-full md:w-auto gap-2 overflow-x-auto pb-1 md:pb-0">
+                    <select id="category-filter" onchange="filterEvents()" class="border border-slate-300 rounded-lg text-xs sm:text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none w-1/2 md:w-auto">
+                        <option value="all">Барлық санаттар</option>
+                        <option value="Академиялық">Академиялық</option>
+                        <option value="IT & ІТ-Спорт">IT & ІТ-Спорт</option>
+                        <option value="Мәдениет">Мәдениет</option>
+                        <option value="Спорт">Спорт</option>
+                    </select>
+                    <select id="status-filter" onchange="filterEvents()" class="border border-slate-300 rounded-lg text-xs sm:text-sm px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none w-1/2 md:w-auto">
+                        <option value="all">Мәртебесі</option>
+                        <option value="active">Белсенді</option>
+                        <option value="past">Өткен</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
+        </section>
+
+        <section id="my-events-view" class="view-section hidden">
+            <div class="mb-5">
+                <h2 id="my-events-title" class="text-xl sm:text-2xl font-bold text-slate-900">Менің шараларым</h2>
+                <p id="my-events-subtitle" class="text-slate-500 text-xs sm:text-sm">Сізге қатысты барлық іс-шаралар тізімі.</p>
+            </div>
+            <div id="my-events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
+        </section>
+
+        <section id="create-event-view" class="view-section hidden">
+            <div class="max-w-2xl mx-auto bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center space-x-3 mb-5 pb-4 border-b border-slate-100">
+                    <div class="bg-indigo-100 text-indigo-700 p-2.5 sm:p-3 rounded-xl">
+                        <i class="fa-solid fa-calendar-plus text-lg sm:text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900">Жаңа іс-шара құру</h2>
+                        <p class="text-slate-500 text-[11px] sm:text-xs">Университеттің жаңа шарасын жоспарлап, студенттерді шақырыңыз.</p>
+                    </div>
+                </div>
+
+                <form id="create-event-form" onsubmit="handleCreateEvent(event)" class="space-y-3.5 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Шараның атауы *</label>
+                        <input type="text" id="event-title" required placeholder="Мысалы: UniHack 2026 Хакатоны" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Санаты *</label>
+                            <select id="event-category" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="Академиялық">Академиялық</option>
+                                <option value="IT & ІТ-Спорт">IT & ІТ-Спорт</option>
+                                <option value="Мәдениет">Мәдениет</option>
+                                <option value="Спорт">Спорт</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Өтетін орны *</label>
+                            <input type="text" id="event-location" required placeholder="Бас ғимарат, 302-аудитория" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Күні *</label>
+                            <input type="date" id="event-date" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Уақыты *</label>
+                            <input type="time" id="event-time" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Сыйымдылығы *</label>
+                            <input type="number" id="event-capacity" min="1" max="1000" required placeholder="50" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Толық сипаттамасы</label>
+                        <textarea id="event-description" rows="3" placeholder="Іс-шара мақсаты мен бағдарламасы..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <label class="flex gap-2 items-start rounded-xl border border-indigo-100 bg-indigo-50 p-3 cursor-pointer">
+                        <input id="event-is-tournament" type="checkbox" class="mt-0.5 accent-indigo-600">
+                        <span><strong>Бұл іс-шара — турнир</strong><span class="block text-slate-600 mt-1">Белгілесеңіз, шара «Шаралар» және «Турнирлер» бөлімдерінде көрсетіледі. Студенттер бұрынғыша тіркеле алады.</span></span>
+                    </label>
+                    <div class="pt-2 flex justify-end space-x-2">
+                        <button type="button" onclick="switchView('events-view')" class="px-4 py-2 border border-slate-300 rounded-lg font-medium text-slate-600 hover:bg-slate-50">Бас тарту</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition">Жариялау</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section id="analytics-view" class="view-section hidden">
+            <div class="mb-5">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Жүйелік аналитика</h2>
+                <p class="text-slate-500 text-xs sm:text-sm">Іс-шаралар тиімділігі мен студенттер белсенділігі.</p>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-lg"><i class="fa-solid fa-calendar-check text-xl"></i></div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] sm:text-xs font-medium block">Шаралар</span>
+                        <span id="stat-total-events" class="text-lg sm:text-2xl font-bold text-slate-800">0</span>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-lg"><i class="fa-solid fa-users-viewfinder text-xl"></i></div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] sm:text-xs font-medium block">Тіркелулер</span>
+                        <span id="stat-total-regs" class="text-lg sm:text-2xl font-bold text-slate-800">0</span>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="bg-amber-100 text-amber-600 p-2.5 rounded-lg"><i class="fa-solid fa-star text-xl"></i></div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] sm:text-xs font-medium block">Рейтинг</span>
+                        <span id="stat-avg-rating" class="text-lg sm:text-2xl font-bold text-slate-800">4.8</span>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="bg-purple-100 text-purple-600 p-2.5 rounded-lg"><i class="fa-solid fa-percent text-xl"></i></div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] sm:text-xs font-medium block">Толтырылу</span>
+                        <span id="stat-fill-rate" class="text-lg sm:text-2xl font-bold text-slate-800">82%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-3 text-xs sm:text-sm">Санаттар үлесі</h3>
+                    <div class="h-56 sm:h-64"><canvas id="categoryChart"></canvas></div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-3 text-xs sm:text-sm">Тіркелген студенттер</h3>
+                    <div class="h-56 sm:h-64"><canvas id="registrationChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="calendar-view" class="view-section hidden">
+            <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Іс-шаралар күнтізбесі</h2>
+                    <p class="text-slate-500 text-xs sm:text-sm">Жоспарланған университет кестесі.</p>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-semibold self-start sm:self-auto">
+                    <i class="fa-solid fa-calendar-days mr-1"></i> Кесте 2026
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
+                <div id="calendar-events-list" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <section id="tournaments-view" class="view-section hidden">
+            <div class="mb-5">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Турнирлер және жарыстар</h2>
+                <p class="text-slate-500 text-xs sm:text-sm">Университеттің нақты турнирлері мен жарыс шаралары.</p>
+            </div>
+            <div id="tournament-create-area" class="hidden bg-white rounded-xl p-4 border mb-4">
+                <h3 class="font-bold mb-3">Жаңа турнир құру</h3>
+                <form id="tournament-create-form" class="grid gap-2 sm:grid-cols-2">
+                    <input id="tournament-title" required minlength="2" maxlength="150" placeholder="Турнир атауы" class="border rounded-lg p-2 text-sm">
+                    <input id="tournament-game" required minlength="2" maxlength="80" placeholder="Спорт немесе ойын түрі" class="border rounded-lg p-2 text-sm">
+                    <textarea id="tournament-description" maxlength="1000" placeholder="Турнир сипаттамасы" class="border rounded-lg p-2 text-sm sm:col-span-2"></textarea>
+                    <button class="bg-indigo-600 text-white rounded-lg p-2 text-sm sm:col-span-2" type="submit">Турнирді сақтау</button>
+                </form>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Турнир ретінде жарияланған шаралар</h3>
+            <div id="tournament-events-dynamic" class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6"></div>
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Жеке турнирлер</h3>
+            <div id="tournaments-dynamic" class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"></div>
+        </section>
+
+        <section id="venues-view" class="view-section hidden">
+            <div class="mb-5">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Өтетін орындар мен аудиториялар</h2>
+                <p class="text-slate-500 text-xs sm:text-sm">Корпустар мен залдардың жабдықталуы.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-bold mb-3"><i class="fa-solid fa-building"></i></div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1">Үлкен акт залы</h3>
+                        <p class="text-[11px] text-slate-500 mb-2">Бас ғимарат, 2-қабат</p>
+                        <p class="text-xs text-slate-600 mb-3">Сыйымдылығы: <b>300 адам</b>. Проектор және сахна бар.</p>
+                    </div>
+                    <span class="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1.5 rounded-lg text-center">Концерттер үшін</span>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center font-bold mb-3"><i class="fa-solid fa-laptop-code"></i></div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1">IT-Хаб коворкинг</h3>
+                        <p class="text-[11px] text-slate-500 mb-2">Бас ғимарат, 1-қабат</p>
+                        <p class="text-xs text-slate-600 mb-3">Сыйымдылығы: <b>100 адам</b>. Жоғары жылдамдықты интернет.</p>
+                    </div>
+                    <span class="text-[11px] bg-purple-50 text-purple-700 font-semibold px-2.5 py-1.5 rounded-lg text-center">Хакатондар үшін</span>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold mb-3"><i class="fa-solid fa-futbol"></i></div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1">Спорт кешені</h3>
+                        <p class="text-[11px] text-slate-500 mb-2">В корпусы</p>
+                        <p class="text-xs text-slate-600 mb-3">Сыйымдылығы: <b>250 адам</b>. Шахмат, баскетбол алаңдары.</p>
+                    </div>
+                    <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2.5 py-1.5 rounded-lg text-center">Жарыстар үшін</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="resources-view" class="view-section hidden">
+            <div class="mb-5">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Құжаттар мен нұсқаулықтар</h2>
+                <p class="text-slate-500 text-xs sm:text-sm">Ресми ережелер, шаблондар және өтініш жүктеу.</p>
+            </div>
+
+            <!-- Organizer Upload Form Section -->
+            <div id="organizer-upload-block" class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 p-4 sm:p-6 rounded-2xl mb-6 shadow-sm">
+                <h3 class="text-base sm:text-lg font-bold text-indigo-900 mb-1.5 flex items-center"><i class="fa-solid fa-paper-plane text-indigo-600 mr-2"></i> Әкімшіге құжат жіберу</h3>
+                <p class="text-[11px] sm:text-xs text-indigo-700 mb-3">Смета немесе есепті жүктеп жіберіңіз.</p>
+                <form id="organizer-doc-form" onsubmit="handleSendDocumentToAdmin(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Құжат атауы *</label>
+                        <input type="text" id="doc-send-title" required placeholder="Мысалы: Смета" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Файлды таңдау *</label>
+                        <input type="file" id="doc-send-file" required class="w-full px-2 py-1.5 border border-slate-300 rounded-lg bg-white text-[11px]">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition shadow flex items-center justify-center">
+                            <i class="fa-solid fa-upload mr-1.5"></i> Жіберу
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Admin Incoming Documents -->
+            <div id="admin-incoming-docs-block" class="hidden mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center"><i class="fa-solid fa-inbox text-emerald-600 mr-2"></i> Түскен құжаттар</h3>
+                    <span id="incoming-docs-count" class="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="incoming-docs-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+            </div>
+
+            <!-- Standard Templates -->
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Үлгі құжаттар (Шаблондар)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 bg-red-50 text-red-600 rounded-lg flex items-center justify-center font-bold mb-3"><i class="fa-solid fa-file-pdf"></i></div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">Өткізу ережелері</h4>
+                        <p class="text-[11px] text-slate-500 mb-3">Нұсқаулық мен шарттар.</p>
+                    </div>
+                    <button onclick="downloadDocument('rules')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-lg transition"><i class="fa-solid fa-download mr-1"></i> Жүктеу (PDF)</button>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center font-bold mb-3"><i class="fa-solid fa-file-excel"></i></div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">Қатысушылар тізімі</h4>
+                        <p class="text-[11px] text-slate-500 mb-3">Excel есепке алу үлгісі.</p>
+                    </div>
+                    <button onclick="downloadDocument('excel')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-lg transition"><i class="fa-solid fa-download mr-1"></i> Жүктеу (Excel)</button>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold mb-3"><i class="fa-solid fa-file-word"></i></div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">Декан атына өтініш</h4>
+                        <p class="text-[11px] text-slate-500 mb-3">Ресми өтініш бланкі.</p>
+                    </div>
+                    <button onclick="downloadDocument('word')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-lg transition"><i class="fa-solid fa-download mr-1"></i> Жүктеу (Word)</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="team-view" class="view-section hidden">
+            <div class="text-center max-w-2xl mx-auto mb-8">
+                <span class="text-indigo-600 font-semibold text-[11px] uppercase tracking-wider">Университеттік жоба</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Әзірлеушілер тобы</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-2">«Event Management System» жүйесін жасаған топ.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-indigo-500 to-indigo-700 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-3 shadow">АМ</div>
+                    <h3 class="font-bold text-base text-slate-800">Абдолмажид Медет</h3>
+                    <p class="text-indigo-600 text-[10px] font-semibold uppercase mt-0.5">Project Manager</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-purple-500 to-purple-700 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-3 shadow">ББ</div>
+                    <h3 class="font-bold text-base text-slate-800">Базарбаев Бекзат</h3>
+                    <p class="text-purple-600 text-[10px] font-semibold uppercase mt-0.5">Full-Stack Developer</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-emerald-700 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-3 shadow">МД</div>
+                    <h3 class="font-bold text-base text-slate-800">Мурсали Динмұхамед</h3>
+                    <p class="text-emerald-600 text-[10px] font-semibold uppercase mt-0.5">QA & Analytics</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Event Detail Modal -->
+    <div id="event-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+            <div class="bg-indigo-900 text-white p-4 sm:p-5 flex justify-between items-start">
+                <div>
+                    <span id="modal-category" class="inline-block px-2.5 py-0.5 bg-indigo-700 text-indigo-100 rounded text-[10px] sm:text-xs font-semibold mb-1.5">Санат</span>
+                    <h3 id="modal-title" class="text-lg sm:text-xl font-bold">Шара атауы</h3>
+                </div>
+                <button onclick="closeModal()" class="text-indigo-200 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 text-xs">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl">
+                    <div>
+                        <span class="text-slate-400 block font-medium text-[10px]">Уақыты:</span>
+                        <span id="modal-datetime" class="font-semibold text-slate-700">---</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium text-[10px]">Өтетін орны:</span>
+                        <span id="modal-location" class="font-semibold text-slate-700">---</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium text-[10px]">Орындар:</span>
+                        <span id="modal-capacity" class="font-semibold text-slate-700">---</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 text-xs mb-1">Сипаттамасы</h4>
+                    <p id="modal-description" class="text-slate-600 leading-relaxed"></p>
+                </div>
+
+                <div id="modal-attendees-section" class="border-t border-slate-100 pt-3 hidden">
+                    <h4 class="font-bold text-slate-800 text-xs mb-2 flex justify-between items-center">
+                        <span>Тіркелгендер</span>
+                        <span id="modal-attendees-count" class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">0</span>
+                    </h4>
+                    <div id="modal-attendees-list" class="max-h-36 overflow-y-auto custom-scrollbar divide-y divide-slate-100 bg-slate-50 rounded-lg p-2"></div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <h4 class="font-bold text-slate-800 text-xs mb-2">Пікірлер мен рейтинг</h4>
+                    <form id="feedback-form" onsubmit="handleAddFeedback(event)" class="bg-slate-50 p-2.5 rounded-xl mb-3 space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-slate-600 text-[11px]">Бағаңыз:</span>
+                            <div class="flex text-amber-400 text-sm space-x-1" id="star-rating-input">
+                                <i class="fa-solid fa-star cursor-pointer" onclick="setRating(1)"></i>
+                                <i class="fa-solid fa-star cursor-pointer" onclick="setRating(2)"></i>
+                                <i class="fa-solid fa-star cursor-pointer" onclick="setRating(3)"></i>
+                                <i class="fa-solid fa-star cursor-pointer" onclick="setRating(4)"></i>
+                                <i class="fa-solid fa-star cursor-pointer text-slate-300" onclick="setRating(5)"></i>
+                            </div>
+                        </div>
+                        <input type="text" id="feedback-text" required placeholder="Пікір жазу..." class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white">
+                        <button type="submit" class="bg-indigo-600 text-white font-medium px-3 py-1.5 rounded-lg transition text-[11px]">Жіберу</button>
+                    </form>
+                    <div id="modal-feedbacks-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 sm:p-4 border-t border-slate-100 flex justify-end space-x-2">
+                <button onclick="closeModal()" class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg">Жабу</button>
+                <button id="modal-register-btn" onclick="openRegistrationForm()" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow">Тіркелу</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Registration Modal -->
+    <div id="student-reg-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 overflow-y-auto">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-5 my-auto">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 text-sm">Тіркелу анкеті</h3>
+                <button onclick="closeRegistrationForm()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <form id="student-reg-form" onsubmit="submitStudentRegistration(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Аты-жөніңіз *</label>
+                    <input type="text" id="reg-student-name" required placeholder="Мысалы: Асан Әлиұлы" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Студенттік ID *</label>
+                    <input type="text" id="reg-student-id" required placeholder="ST2026541" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Тобы / Мамандығы *</label>
+                    <select id="reg-student-group" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none">
+                        <option value="Ақпараттық технологиялар (IT)">Ақпараттық технологиялар (IT)</option>
+                        <option value="Механика-математика (Мех)">Механика-математика (Мех)</option>
+                        <option value="Логистика және көлік (Логистика)">Логистика және көлік (Логистика)</option>
+                        <option value="Математика және педагогика (Матпед)">Математика және педагогика (Матпед)</option>
+                        <option value="Экономика және бизнес">Экономика және бизнес</option>
+                        <option value="Өзге факультет / топ">Өзге факультет / топ</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeRegistrationForm()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-600">Болдырмау</button>
+                    <button type="submit" class="px-3.5 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow">Растау</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let events = [
+            {
+                id: 1,
+                title: "UniHack 2026 Студенттік хакатоны",
+                category: "IT & ІТ-Спорт",
+                location: "Бас ғимарат, 1-қабат IT-Хаб",
+                date: "2026-10-20",
+                time: "10:00",
+                capacity: 100,
+                organizerId: "ORG-101",
+                organizerName: "IT Департамент",
+                description: "24 сағаттық инновациялық жобалар мен бағдарламалау жарысы. Жүлде қоры: 500,000 ₸.",
+                registeredUsers: [
+                    { name: "Асан Әлиев", studentId: "ST99201", group: "Ақпараттық технологиялар (IT)" },
+                    { name: "Мадина Серікова", studentId: "ST99202", group: "Механика-математика (Мех)" }
+                ],
+                feedbacks: [
+                    { name: "Данияр Т.", rating: 5, text: "Өте жоғары деңгейдегі хакатон!" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Университет студенттік көктемі концерті",
+                category: "Мәдениет",
+                location: "Үлкен акт залы",
+                date: "2026-10-25",
+                time: "17:00",
+                capacity: 300,
+                organizerId: "ORG-102",
+                organizerName: "Мәдениет орталығы",
+                description: "Жыл сайынғы студенттік өнер ұжымдарының дәстүрлі концерті.",
+                registeredUsers: [
+                    { name: "Айша Қалиева", studentId: "ST88104", group: "Математика және педагогика (Матпед)" }
+                ],
+                feedbacks: [
+                    { name: "Айша Қ.", rating: 5, text: "Шығармашылық атмосфера тамаша!" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Жасанды интеллект концепциялары",
+                category: "Академиялық",
+                location: "305 Лекциялық зал",
+                date: "2026-11-02",
+                time: "14:00",
+                capacity: 50,
+                organizerId: "ORG-101",
+                organizerName: "IT Департамент",
+                description: "Шақырылған IT мамандарының AI трендтері бойынша ашық лекциясы.",
+                registeredUsers: [
+                    { name: "Абдолмажид Медет", studentId: "ST10001", group: "Ақпараттық технологиялар (IT)" }
+                ],
+                feedbacks: []
+            },
+            {
+                id: 4,
+                title: "Жоғарғы лига: Шахмат турнирі",
+                category: "Спорт",
+                location: "Спорт кешені",
+                date: "2026-09-15",
+                time: "11:00",
+                capacity: 40,
+                organizerId: "ORG-103",
+                organizerName: "Спорт клубы",
+                description: "Студенттер арасындағы жылдам шахмат чемпионаты.",
+                registeredUsers: [
+                    { name: "Мурсали Динмұхамед", studentId: "ST10003", group: "Механика-математика (Мех)" }
+                ],
+                feedbacks: [
+                    { name: "Арман С.", rating: 4, text: "Жақсы ұйымдастырылған турнир." }
+                ]
+            }
+        ];
+
+        let sentDocuments = [
+            {
+                id: 101,
+                title: "UniHack 2026 Сметасы",
+                fileName: "UniHack_Smeta_2026.pdf",
+                senderRole: "organizer",
+                senderName: "Базарбаев Бекзат",
+                senderId: "ORG-101",
+                sentDate: "2026-10-12 11:15",
+                fileContent: "СМЕТА ЖӘНЕ БАҒДАРЛАМА\n1. Жүлде қоры: 500,000 тг"
+            }
+        ];
+
+        let notifications = [
+            { id: 1, text: "Сіз 'UniHack 2026' хакатонына тіркелдіңіз!", time: "10 мин бұрын" },
+            { id: 2, text: "Жаңа шара қосылды: AI лекциясы", time: "1 сағ бұрын" }
+        ];
+
+        let currentUserRole = "student";
+        let currentSelectedEventId = null;
+        let selectedRating = 4;
+        
+        let currentStudentProfile = {
+            name: "Студент (Сіз)",
+            studentId: "ST202600",
+            group: "Ақпараттық технологиялар (IT)"
+        };
+
+        let currentOrganizerProfile = {
+            id: "ORG-101",
+            name: "Базарбаев Бекзат"
+        };
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleAuthFields(role) {
+            const studentIdContainer = document.getElementById('auth-student-id-container');
+            const groupContainer = document.getElementById('auth-group-container');
+            const passContainer = document.getElementById('auth-pass-container');
+            const studentIdInput = document.getElementById('auth-student-id');
+
+            if (role === 'student') {
+                studentIdContainer.classList.remove('hidden');
+                groupContainer.classList.remove('hidden');
+                passContainer.classList.add('hidden');
+                studentIdInput.required = true;
+            } else {
+                studentIdContainer.classList.add('hidden');
+                groupContainer.classList.add('hidden');
+                passContainer.classList.remove('hidden');
+                studentIdInput.required = false;
+            }
+        }
+
+        function handleLoginSubmit(event) {
+            event.preventDefault();
+            const role = document.getElementById('auth-role').value;
+            const name = document.getElementById('auth-name').value;
+
+            currentUserRole = role;
+
+            if (role === 'student') {
+                const studentId = document.getElementById('auth-student-id').value;
+                const group = document.getElementById('auth-group').value;
+                currentStudentProfile = { name, studentId, group };
+            } else if (role === 'organizer') {
+                currentOrganizerProfile = { id: "ORG-" + Date.now().toString().slice(-3), name: name };
+            } else if (role === 'admin') {
+                currentOrganizerProfile = { id: "ADMIN", name: name };
+            }
+
+            document.getElementById('auth-modal').classList.add('hidden');
+            updateRoleUI();
+            renderEvents();
+            showToast(`Қош келдіңіз, ${name}!`);
+        }
+
+        function logoutUser() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('auth-form').reset();
+            toggleAuthFields('student');
+        }
+
+        function renderEvents() {
+            const grid = document.getElementById('events-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const searchInput = document.getElementById('search-input');
+            const categoryFilter = document.getElementById('category-filter');
+            const statusFilter = document.getElementById('status-filter');
+
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const categoryValue = categoryFilter ? categoryFilter.value : 'all';
+            const statusValue = statusFilter ? statusFilter.value : 'all';
+
+            const filtered = events.filter(e => {
+                const matchesSearch = e.title.toLowerCase().includes(searchTerm) || e.location.toLowerCase().includes(searchTerm);
+                const matchesCat = categoryValue === 'all' || e.category === categoryValue;
+                const isPast = new Date(e.date) < new Date();
+                let matchesStatus = true;
+                if (statusValue === 'active') matchesStatus = !isPast;
+                if (statusValue === 'past') matchesStatus = isPast;
+                return matchesSearch && matchesCat && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">
+                    <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
+                    <p class="text-xs">Іс-шаралар табылмады.</p>
+                </div>`;
+                return;
+            }
+
+            filtered.forEach(e => {
+                const isReg = e.registeredUsers.some(u => u.studentId === currentStudentProfile.studentId);
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between";
+                
+                let adminControls = '';
+                if (currentUserRole === 'admin' || (currentUserRole === 'organizer' && e.organizerId === currentOrganizerProfile.id)) {
+                    adminControls = `<button onclick="deleteEvent(${e.id})" class="text-[11px] text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i> Өшіру</button>`;
+                }
+
+                const eventDateTime = new Date(`${e.date}T${e.time || '00:00'}`);
+                const isPastOrOngoing = new Date() >= eventDateTime;
+
+                let studentActionButton = '';
+                if (currentUserRole === 'student') {
+                    if (isReg) {
+                        studentActionButton = `<span class="text-[11px] bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg font-semibold"><i class="fa-solid fa-check mr-1"></i> Тіркелдіңіз</span>`;
+                    } else if (isPastOrOngoing) {
+                        studentActionButton = `<span class="text-[11px] bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-lg font-medium"><i class="fa-solid fa-lock mr-1"></i> Жабық</span>`;
+                    } else {
+                        studentActionButton = `<button onclick="openRegistrationFormForEvent(${e.id})" class="text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">Тіркелу</button>`;
+                    }
+                } else {
+                    studentActionButton = `<span class="text-[11px] text-slate-400">Басқару</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="p-4 sm:p-5">
+                        <div class="flex justify-between items-center mb-2.5">
+                            <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-semibold rounded">${e.category}</span>
+                            ${adminControls}
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base mb-1.5">${e.title}</h3>
+                        <p class="text-[11px] sm:text-xs text-slate-600 line-clamp-2 mb-3">${e.description}</p>
+                        
+                        <div class="space-y-1 text-[11px] text-slate-500">
+                            <div class="flex items-center"><i class="fa-regular fa-calendar w-4 text-indigo-500 mr-1"></i> ${e.date} (${e.time})</div>
+                            <div class="flex items-center"><i class="fa-solid fa-location-dot w-4 text-indigo-500 mr-1"></i> ${e.location}</div>
+                            <div class="flex items-center"><i class="fa-solid fa-users w-4 text-indigo-500 mr-1"></i> Тіркелгендер: <b class="text-slate-700 ml-1">${e.registeredUsers.length} / ${e.capacity}</b></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-3 sm:p-4 border-t border-slate-100 flex justify-between items-center">
+                        <button onclick="openModal(${e.id})" class="text-xs text-indigo-600 font-semibold hover:underline">Толығырақ...</button>
+                        ${studentActionButton}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.onload = function() {
+            toggleAuthFields('student');
+            renderEvents();
+            renderNotifications();
+            initCharts();
+            updateAnalytics();
+            renderCalendar();
+            updateRoleUI();
+            renderIncomingDocs();
+        };
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            if (viewId === 'my-events-view') {
+                renderMyEvents();
+            } else if (viewId === 'analytics-view') {
+                updateAnalytics();
+            } else if (viewId === 'calendar-view') {
+                renderCalendar();
+            } else if (viewId === 'resources-view') {
+                renderIncomingDocs();
+            }
+        }
+
+        function updateRoleUI() {
+            const nameDisplay = document.getElementById('user-name-display');
+            const avatar = document.getElementById('user-avatar');
+            const createBtn = document.getElementById('nav-create-btn');
+            const analyticsBtn = document.getElementById('nav-analytics-btn');
+            const teamBtn = document.getElementById('nav-team-btn');
+            const resourcesBtn = document.getElementById('nav-resources-btn');
+            
+            const mobCreate = document.getElementById('mob-nav-create');
+            const mobAnalytics = document.getElementById('mob-nav-analytics');
+            const mobTeam = document.getElementById('mob-nav-team');
+            const mobResources = document.getElementById('mob-nav-resources');
+            
+            const myEventsNavLabel = document.getElementById('my-events-nav-label');
+            const mobMyEventsLabel = document.getElementById('mobile-my-events-label');
+
+            const orgUploadBlock = document.getElementById('organizer-upload-block');
+            const adminDocsBlock = document.getElementById('admin-incoming-docs-block');
+
+            if (currentUserRole === 'student') {
+                nameDisplay.innerText = "Студент";
+                avatar.innerText = "С";
+                avatar.className = "w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold";
+                createBtn.classList.add('hidden'); analyticsBtn.classList.add('hidden'); teamBtn.classList.add('hidden'); resourcesBtn.classList.add('hidden');
+                mobCreate.classList.add('hidden'); mobAnalytics.classList.add('hidden'); mobTeam.classList.add('hidden'); mobResources.classList.add('hidden');
+                if (myEventsNavLabel) myEventsNavLabel.innerText = "Менің шараларым";
+                if (mobMyEventsLabel) mobMyEventsLabel.innerText = "Менің шараларым";
+            } else if (currentUserRole === 'organizer') {
+                nameDisplay.innerText = "Ұйымдастырушы";
+                avatar.innerText = "Ұ";
+                avatar.className = "w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold";
+                createBtn.classList.remove('hidden'); resourcesBtn.classList.remove('hidden');
+                mobCreate.classList.remove('hidden'); mobResources.classList.remove('hidden');
+                analyticsBtn.classList.add('hidden'); teamBtn.classList.add('hidden');
+                mobAnalytics.classList.add('hidden'); mobTeam.classList.add('hidden');
+                if (myEventsNavLabel) myEventsNavLabel.innerText = "Құрған шараларым";
+                if (mobMyEventsLabel) mobMyEventsLabel.innerText = "Құрған шараларым";
+                if (orgUploadBlock) orgUploadBlock.classList.remove('hidden');
+                if (adminDocsBlock) adminDocsBlock.classList.add('hidden');
+            } else if (currentUserRole === 'admin') {
+                nameDisplay.innerText = "Әкімші";
+                avatar.innerText = "Ә";
+                avatar.className = "w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold";
+                createBtn.classList.add('hidden');
+                mobCreate.classList.add('hidden');
+                analyticsBtn.classList.remove('hidden'); teamBtn.classList.remove('hidden'); resourcesBtn.classList.remove('hidden');
+                mobAnalytics.classList.remove('hidden'); mobTeam.classList.remove('hidden'); mobResources.classList.remove('hidden');
+                if (myEventsNavLabel) myEventsNavLabel.innerText = "Басқару";
+                if (mobMyEventsLabel) mobMyEventsLabel.innerText = "Басқару";
+                if (orgUploadBlock) orgUploadBlock.classList.add('hidden');
+                if (adminDocsBlock) adminDocsBlock.classList.remove('hidden');
+            }
+        }
+
+        function renderMyEvents() {
+            const grid = document.getElementById('my-events-grid');
+            const titleEl = document.getElementById('my-events-title');
+            const subtitleEl = document.getElementById('my-events-subtitle');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (currentUserRole === 'student') {
+                titleEl.innerText = "Менің тіркелген шараларым";
+                subtitleEl.innerText = "Сіз қатысуға өтінім берген шаралар тізімі.";
+                const myEvs = events.filter(e => e.registeredUsers.some(u => u.studentId === currentStudentProfile.studentId));
+
+                if (myEvs.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400 text-xs">Сіз ешқандай іс-шараға тіркелмедіңіз.</div>`;
+                    return;
+                }
+
+                myEvs.forEach(e => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between text-xs";
+                    card.innerHTML = `
+                        <div>
+                            <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-semibold rounded">${e.category}</span>
+                            <h3 class="font-bold text-slate-800 text-sm mt-2 mb-1">${e.title}</h3>
+                            <p class="text-slate-500 mb-2"><i class="fa-solid fa-location-dot mr-1"></i>${e.location}</p>
+                            <p class="text-slate-600"><i class="fa-regular fa-clock mr-1"></i>${e.date} (${e.time})</p>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center">
+                            <button onclick="cancelRegistration(${e.id})" class="text-red-500 hover:underline">Бас тарту</button>
+                            <button onclick="openModal(${e.id})" class="bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-1 rounded">Ақпарат</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else if (currentUserRole === 'organizer') {
+                titleEl.innerText = "Мен ұйымдастырған шаралар";
+                subtitleEl.innerText = "Сіз жариялаған университет шаралары.";
+                const myOrgEvs = events.filter(e => e.organizerId === currentOrganizerProfile.id);
+
+                if (myOrgEvs.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400 text-xs">Әзірге шара жарияламадыңыз.</div>`;
+                    return;
+                }
+
+                myOrgEvs.forEach(e => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-2xl border border-purple-200 p-4 shadow-sm flex flex-col justify-between text-xs";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-[10px] font-semibold rounded">${e.category}</span>
+                                <span class="text-[11px] text-purple-600 font-bold">${e.registeredUsers.length}/${e.capacity}</span>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">${e.title}</h3>
+                            <p class="text-slate-500 mb-2"><i class="fa-solid fa-location-dot mr-1"></i>${e.location}</p>
+                            <p class="text-slate-600"><i class="fa-regular fa-clock mr-1"></i>${e.date} (${e.time})</p>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center">
+                            <button onclick="deleteEvent(${e.id})" class="text-red-500 hover:underline"><i class="fa-solid fa-trash mr-1"></i> Өшіру</button>
+                            <button onclick="openModal(${e.id})" class="bg-purple-600 text-white font-semibold px-2.5 py-1 rounded shadow-sm">Қатысушылар</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else if (currentUserRole === 'admin') {
+                titleEl.innerText = "Барлық шараларды басқару";
+                subtitleEl.innerText = "Жүйедегі барлық іс-шаралар тізімі.";
+                events.forEach(e => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between text-xs";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded">${e.category}</span>
+                                <span class="text-slate-500">${e.registeredUsers.length} тіркелді</span>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">${e.title}</h3>
+                            <p class="text-slate-500 mb-2"><i class="fa-solid fa-user-gear mr-1"></i>${e.organizerName}</p>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center">
+                            <button onclick="deleteEvent(${e.id})" class="text-red-500 hover:underline">Өшіру</button>
+                            <button onclick="openModal(${e.id})" class="bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded">Қарау</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        function handleSendDocumentToAdmin(event) {
+            event.preventDefault();
+            const title = document.getElementById('doc-send-title').value;
+            const fileInput = document.getElementById('doc-send-file');
+            const fileName = fileInput.files[0] ? fileInput.files[0].name : "Құжат.pdf";
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0,10) + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+            sentDocuments.unshift({
+                id: Date.now(),
+                title: title,
+                fileName: fileName,
+                senderRole: "organizer",
+                senderName: currentOrganizerProfile.name,
+                sentDate: dateStr,
+                fileContent: `ҚҰЖАТ: ${title}\nЖіберуші: ${currentOrganizerProfile.name}`
+            });
+
+            showToast("Құжат Әкімшіге сәтті жіберілді!");
+            document.getElementById('organizer-doc-form').reset();
+            renderIncomingDocs();
+        }
+
+        function renderIncomingDocs() {
+            const list = document.getElementById('incoming-docs-list');
+            const countBadge = document.getElementById('incoming-docs-count');
+            if (!list) return;
+            list.innerHTML = '';
+            if (countBadge) countBadge.innerText = sentDocuments.length;
+
+            if (sentDocuments.length === 0) {
+                list.innerHTML = `<div class="col-span-full text-slate-400 text-xs italic">Құжаттар жоқ.</div>`;
+                return;
+            }
+
+            sentDocuments.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between text-xs";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-1.5">
+                            <span class="font-bold text-slate-800 line-clamp-1">${doc.title}</span>
+                            <span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[9px] font-semibold">Жаңа</span>
+                        </div>
+                        <p class="text-slate-500 mb-1"><b>Кімнен:</b> ${doc.senderName}</p>
+                        <p class="text-slate-500 mb-2.5"><b>Файл:</b> ${doc.fileName}</p>
+                    </div>
+                    <button onclick="downloadCustomDoc(${doc.id})" class="w-full bg-emerald-600 text-white font-semibold py-1.5 rounded-lg transition flex items-center justify-center">
+                        <i class="fa-solid fa-download mr-1"></i> Жүктеу
+                    </button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function downloadCustomDoc(docId) {
+            const docObj = sentDocuments.find(d => d.id === docId);
+            if (!docObj) return;
+            const blob = new Blob([docObj.fileContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = docObj.fileName;
+            link.click();
+            showToast("Құжат жүктелді!");
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('calendar-events-list');
+            if (!container) return;
+            container.innerHTML = '';
+            events.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(e => {
+                const item = document.createElement('div');
+                item.className = "flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl gap-3 text-xs";
+                item.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-center min-w-[55px]">
+                            <span class="block text-[10px] uppercase">${e.date.split('-')[1]}-ай</span>
+                            <span class="block text-base font-bold">${e.date.split('-')[2]}</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">${e.category}</span>
+                            <h4 class="font-bold text-slate-800 mt-1">${e.title}</h4>
+                            <p class="text-slate-500 text-[11px] mt-0.5"><i class="fa-solid fa-location-dot mr-1"></i>${e.location} | ${e.time}</p>
+                        </div>
+                    </div>
+                    <button onclick="openModal(${e.id})" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 font-semibold self-end sm:self-center">Қарау</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function filterEvents() { renderEvents(); }
+
+        function openRegistrationFormForEvent(eventId) {
+            const ev = events.find(x => x.id === eventId);
+            if (ev && new Date() >= new Date(`${ev.date}T${ev.time || '00:00'}`)) {
+                showToast("Бұл іс-шараға тіркелу жабылған!", "info");
+                return;
+            }
+            currentSelectedEventId = eventId;
+            document.getElementById('reg-student-name').value = currentStudentProfile.name !== "Студент (Сіз)" ? currentStudentProfile.name : "";
+            document.getElementById('reg-student-id').value = currentStudentProfile.studentId !== "ST202600" ? currentStudentProfile.studentId : "";
+            document.getElementById('student-reg-modal').classList.remove('hidden');
+        }
+
+        function closeRegistrationForm() { document.getElementById('student-reg-modal').classList.add('hidden'); }
+
+        function submitStudentRegistration(event) {
+            event.preventDefault();
+            const name = document.getElementById('reg-student-name').value;
+            const studentId = document.getElementById('reg-student-id').value;
+            const group = document.getElementById('reg-student-group').value;
+            currentStudentProfile = { name, studentId, group };
+
+            const ev = events.find(x => x.id === currentSelectedEventId);
+            if (ev && !ev.registeredUsers.some(u => u.studentId === studentId)) {
+                ev.registeredUsers.push({ name, studentId, group });
+                showToast("Іс-шараға сәтті тіркелдіңіз!");
+            }
+            closeRegistrationForm();
+            renderEvents();
+            if(!document.getElementById('event-modal').classList.contains('hidden')) openModal(currentSelectedEventId);
+        }
+
+        function cancelRegistration(eventId) {
+            const ev = events.find(x => x.id === eventId);
+            if (ev) {
+                ev.registeredUsers = ev.registeredUsers.filter(u => u.studentId !== currentStudentProfile.studentId);
+                showToast("Тіркелуден бас тартылды", "info");
+                renderMyEvents();
+                renderEvents();
+            }
+        }
+
+        function handleCreateEvent(event) {
+            event.preventDefault();
+            events.unshift({
+                id: Date.now(),
+                title: document.getElementById('event-title').value,
+                category: document.getElementById('event-category').value,
+                location: document.getElementById('event-location').value,
+                date: document.getElementById('event-date').value,
+                time: document.getElementById('event-time').value,
+                capacity: parseInt(document.getElementById('event-capacity').value),
+                organizerId: currentOrganizerProfile.id,
+                organizerName: currentOrganizerProfile.name,
+                description: document.getElementById('event-description').value,
+                registeredUsers: [],
+                feedbacks: []
+            });
+            showToast("Жаңа іс-шара жарияланды!");
+            document.getElementById('create-event-form').reset();
+            switchView('events-view');
+            renderEvents();
+        }
+
+        function deleteEvent(eventId) {
+            events = events.filter(x => x.id !== eventId);
+            showToast("Іс-шара өшірілді", "info");
+            renderEvents();
+            if(!document.getElementById('my-events-view').classList.contains('hidden')) renderMyEvents();
+        }
+
+        function escapeAttendee(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function openModal(eventId) {
+            currentSelectedEventId = eventId;
+            const ev = events.find(x => x.id === eventId);
+            if (!ev) return;
+
+            document.getElementById('modal-title').innerText = ev.title;
+            document.getElementById('modal-category').innerText = ev.category;
+            document.getElementById('modal-datetime').innerText = `${ev.date} ${ev.time}`;
+            document.getElementById('modal-location').innerText = ev.location;
+            document.getElementById('modal-capacity').innerText = `${ev.registeredUsers.length} / ${ev.capacity}`;
+            document.getElementById('modal-description').innerText = ev.description;
+
+            const attSection = document.getElementById('modal-attendees-section');
+            if (currentUserRole === 'admin' || (currentUserRole === 'organizer' && ev.organizerId === currentOrganizerProfile.id)) {
+                attSection.classList.remove('hidden');
+                document.getElementById('modal-attendees-count').innerText = `${ev.registeredUsers.length} адам`;
+                document.getElementById('modal-attendees-list').innerHTML = ev.registeredUsers.length > 0 
+                    ? ev.registeredUsers.map(u => `<div class="py-2 text-slate-700 border-b border-slate-200"><b>${escapeAttendee(u.name)}</b><div class="text-[11px] mt-1">ID: ${escapeAttendee(u.studentId)} <span class="text-indigo-700 font-semibold ml-2">Тобы: ${escapeAttendee(u.group || 'Көрсетілмеген')}</span></div></div>`).join('')
+                    : `<span class="text-slate-400">Әлі ешкім жоқ.</span>`;
+            } else {
+                attSection.classList.add('hidden');
+            }
+
+            const regBtn = document.getElementById('modal-register-btn');
+            if (currentUserRole === 'student') {
+                const isReg = ev.registeredUsers.some(u => u.studentId === currentStudentProfile.studentId);
+                const isPast = new Date() >= new Date(`${ev.date}T${ev.time || '00:00'}`);
+                if (isReg) {
+                    regBtn.innerText = "Тіркелуден бас тарту";
+                    regBtn.className = "px-3 py-1.5 text-xs font-bold text-white bg-red-600 rounded-lg";
+                    regBtn.onclick = function() { cancelRegistration(currentSelectedEventId); openModal(currentSelectedEventId); };
+                } else if (isPast) {
+                    regBtn.innerText = "Жабылған";
+                    regBtn.className = "px-3 py-1.5 text-xs font-bold text-slate-500 bg-slate-200 rounded-lg cursor-not-allowed";
+                    regBtn.onclick = null;
+                } else {
+                    regBtn.innerText = "Іс-шараға тіркелу";
+                    regBtn.className = "px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 rounded-lg";
+                    regBtn.onclick = function() { closeRegistrationForm(); openRegistrationFormForEvent(currentSelectedEventId); };
+                }
+                regBtn.classList.remove('hidden');
+            } else {
+                regBtn.classList.add('hidden');
+            }
+
+            renderModalFeedbacks(ev);
+            document.getElementById('event-modal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('event-modal').classList.add('hidden'); }
+
+        function setRating(r) {
+            selectedRating = r;
+            const stars = document.getElementById('star-rating-input').children;
+            for (let i = 0; i < 5; i++) {
+                stars[i].className = i < r ? "fa-solid fa-star cursor-pointer" : "fa-solid fa-star cursor-pointer text-slate-300";
+            }
+        }
+
+        function handleAddFeedback(event) {
+            event.preventDefault();
+            const ev = events.find(x => x.id === currentSelectedEventId);
+            const text = document.getElementById('feedback-text').value;
+            ev.feedbacks.unshift({ name: currentStudentProfile.name, rating: selectedRating, text: text });
+            document.getElementById('feedback-text').value = '';
+            showToast("Пікір қосылды!");
+            renderModalFeedbacks(ev);
+        }
+
+        function renderModalFeedbacks(ev) {
+            const list = document.getElementById('modal-feedbacks-list');
+            if (!list) return;
+            list.innerHTML = ev.feedbacks.length === 0 ? `<p class="text-slate-400 italic text-[11px]">Пікірлер жоқ.</p>` :
+                ev.feedbacks.map(f => `<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-[11px]"><div class="flex justify-between font-bold text-slate-700"><span>${f.name}</span><span class="text-amber-400">${Array(f.rating).fill('<i class="fa-solid fa-star"></i>').join('')}</span></div><p class="text-slate-600 mt-0.5">${f.text}</p></div>`).join('');
+        }
+
+        function toggleNotifications() { document.getElementById('notif-dropdown').classList.toggle('hidden'); }
+        function addNotification(text) { notifications.unshift({ id: Date.now(), text, time: "Қазір" }); renderNotifications(); }
+        function renderNotifications() {
+            const list = document.getElementById('notif-list');
+            const badge = document.getElementById('notif-badge');
+            if (!list || !badge) return;
+            badge.innerText = notifications.length;
+            if (notifications.length === 0) badge.classList.add('hidden'); else badge.classList.remove('hidden');
+            list.innerHTML = notifications.map(n => `<div class="p-2.5 hover:bg-slate-50"><p class="text-xs text-slate-700 font-medium">${n.text}</p><span class="text-[9px] text-slate-400">${n.time}</span></div>`).join('');
+        }
+        function clearNotifications() { notifications = []; renderNotifications(); }
+
+        function downloadDocument(type) {
+            let filename = type === 'rules' ? "Eregeiler.txt" : type === 'excel' ? "Tizim.csv" : "Otinish.txt";
+            let content = "Ресми құжат үлгісі мазмұны.";
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            showToast(`"${filename}" жүктелді!`);
+        }
+
+        let categoryChartInstance = null, registrationChartInstance = null;
+        function initCharts() {
+            const elCat = document.getElementById('categoryChart');
+            const elReg = document.getElementById('registrationChart');
+            if (!elCat || !elReg) return;
+            categoryChartInstance = new Chart(elCat.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Академиялық', 'IT', 'Мәдениет', 'Спорт'], datasets: [{ data: [1, 1, 1, 1], backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#10b981'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            registrationChartInstance = new Chart(elReg.getContext('2d'), {
+                type: 'bar',
+                data: { labels: ['Шара 1', 'Шара 2', 'Шара 3', 'Шара 4'], datasets: [{ label: 'Тіркелгендер', data: [2, 1, 1, 1], backgroundColor: '#6366f1' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function updateAnalytics() {
+            const totalEventsEl = document.getElementById('stat-total-events');
+            const totalRegsEl = document.getElementById('stat-total-regs');
+            if (!totalEventsEl || !totalRegsEl) return;
+            totalEventsEl.innerText = events.length;
+            totalRegsEl.innerText = events.reduce((acc, curr) => acc + curr.registeredUsers.length, 0);
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `${type === 'success' ? 'bg-emerald-600' : 'bg-slate-800'} text-white text-xs font-medium px-3.5 py-2.5 rounded-xl shadow-lg flex items-center space-x-2 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+    <script src="/api-integration.js"></script>
+    <script src="/face-api/face-api.js"></script>
+    <script src="/face-id.js"></script>
+</body>
+</html>
